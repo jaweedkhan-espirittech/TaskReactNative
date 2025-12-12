@@ -47,6 +47,7 @@ export default function CreateMemory() {
 				.insert([
 					{
 						id,
+						user_id: new Date().toISOString(),
 						title: title.trim(),
 						description: description.trim() || null,
 						image_url: publicUrl,
@@ -55,6 +56,8 @@ export default function CreateMemory() {
 				]);
 
 			if (insertError) throw insertError;
+
+			Alert.alert('Upload Success', 'Successfully image is upload');
 
 			router.push({ pathname: '/Confirmation', params: { image: publicUrl } });
 		} catch (e) {
