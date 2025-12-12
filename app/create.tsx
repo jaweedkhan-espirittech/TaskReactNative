@@ -1,9 +1,10 @@
 import { Button, ImageSelector, TextField } from '@/components';
 import { supabase } from '@/lib';
-import { getBlobFromUri } from '@/utils';
+import { uriToUint8Array } from '@/utils';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { Alert, StyleSheet, Text, View } from 'react-native';
+import 'react-native-get-random-values';
 import { v4 as uuidv4 } from 'uuid';
 
 export default function CreateMemory() {
@@ -13,42 +14,49 @@ export default function CreateMemory() {
 	const [imageUri, setImageUri] = useState<string | null>(null);
 	const [loading, setLoading] = useState<boolean>(false);
 
+	// It will handle when the image is being uploaded to Supabase storage
 	async function handleUpload() {
 		if (!imageUri) return Alert.alert('Please select an image');
 		if (!title.trim()) return Alert.alert('Please enter a title');
 
 		setLoading(true);
 		try {
-			const blob: string | Blob | null = await getBlobFromUri(imageUri);
+			const bytes = await uriToUint8Array(imageUri);
 
 			const id = uuidv4();
 			const ext = imageUri.split('.').pop()?.split('?')[0] || 'jpg';
-			const filePath = `memories/${id}.${ext}`;
+			const filePath = `uploads/${id}.${ext}`;
 
 			const { error: uploadError } = await supabase.storage
-				.from('memories')
-				.upload(filePath, blob, { cacheControl: '3600', upsert: false });
+				.from('task_memories')
+				.upload(filePath, bytes, {
+					contentType: `image/${ext}`,
+					upsert: false,
+				});
 
 			if (uploadError) throw uploadError;
 
 			const { data: publicData } = await supabase.storage
-				.from('memories')
+				.from('task_memories')
 				.getPublicUrl(filePath);
+
 			const publicUrl = publicData.publicUrl;
 
-			const { error: insertError } = await supabase.from('memories').insert([
-				{
-					id,
-					title: title.trim(),
-					description: description.trim() || null,
-					image_url: publicUrl,
-					created_at: new Date().toISOString(),
-				},
-			]);
+			const { error: insertError } = await supabase
+				.from('task_memories')
+				.insert([
+					{
+						id,
+						title: title.trim(),
+						description: description.trim() || null,
+						image_url: publicUrl,
+						created_at: new Date().toISOString(),
+					},
+				]);
 
 			if (insertError) throw insertError;
 
-			router.push({ pathname: '/confirmation', params: { image: publicUrl } });
+			router.push({ pathname: '/Confirmation', params: { image: publicUrl } });
 		} catch (e) {
 			console.error('Upload error', e);
 			Alert.alert('Upload failed', (e as Error).message || String(e));

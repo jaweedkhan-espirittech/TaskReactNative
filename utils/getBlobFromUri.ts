@@ -1,14 +1,11 @@
-export async function getBlobFromUri(uri: string): Promise<Blob | null> {
+export async function uriToUint8Array(uri: string): Promise<Uint8Array> {
 	try {
+		// For Expo ImagePicker or local files, fetch works
 		const response = await fetch(uri);
-
-		if (!response.ok) {
-			return null;
-		}
-
-		return await response.blob();
+		const arrayBuffer = await response.arrayBuffer();
+		return new Uint8Array(arrayBuffer);
 	} catch (error) {
-		console.error('Error in getBlobFromUri:', error);
-		return null;
+		console.error('uriToUint8Array error', error);
+		throw error;
 	}
 }

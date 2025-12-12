@@ -1,9 +1,10 @@
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams } from 'expo-router';
 import React from 'react';
 import { Image, StyleSheet, Text, View } from 'react-native';
 
 export default function Confirmation() {
 	const { image } = useLocalSearchParams();
+	console.log(image);
 
 	return (
 		<View style={styles.container}>

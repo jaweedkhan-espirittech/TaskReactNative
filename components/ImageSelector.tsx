@@ -9,15 +9,18 @@ interface ImageSelectorProps {
 
 export function ImageSelector(props: ImageSelectorProps) {
 	const { imageUri, onImageSelected } = props;
+
+	//  The following logic is implemented to fetch an image from the device’s gallery.
 	async function pickImage() {
 		try {
+			// The app will ask for permission, and afterward, it will open the gallery for the first time.
 			const permission =
 				await ImagePicker.requestMediaLibraryPermissionsAsync();
 			if (!permission.granted)
 				return alert('Permission required to access photos');
 
 			const result = await ImagePicker.launchImageLibraryAsync({
-				mediaTypes: ImagePicker.MediaTypeOptions.Images,
+				mediaTypes: ['images'],
 				quality: 0.7,
 				allowsEditing: true,
 			});
